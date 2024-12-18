@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>寻宝动画</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        background-color: #f0f0f0;
+    }
+    .container {
+        text-align: center;
+    }
+    .step {
+        margin: 10px 0;
+    }
+    .step:before {
+        content: '步骤 ';
+        font-weight: bold;
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>寻宝过程动画</h1>
+    <div id="clue" class="step">等待获取线索...</div>
+    <div id="fragment" class="step">等待获取地图碎片...</div>
+    <div id="assembledMap" class="step">等待组装地图...</div>
+    <div id="location" class="step">等待导航至神庙...</div>
+    <div id="box" class="step">等待搜索神庙...</div>
+    <div id="treasure" class="step">等待打开宝箱...</div>
+</div>
+<div id="content">
+  <!-- 动态加载的内容将会在这里显示 -->
+</div>
+<script>
+  const audio = new Audio('background_music.mp3');
+  audio.play();
+  class TreasureMap {
+    static getInitialClue() {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve("在古老的图书馆里找到了第一个线索...");
+        }, 1000);
+      });
+    }
+  
+    static decodeAncientScript(clue) {
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          if (!clue) {
+            reject("没有线索可以解码!");
+          }
+          resolve("解码成功!宝藏在一座古老的神庙中...");
+        }, 1500);
+      });
+    }
+  
+    static searchTemple(location) {
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          const random = Math.random();
+          if (random < 0.5) {
+            reject("糟糕!遇到了神庙守卫!");
+          }
+          resolve("找到了一个神秘的箱子...");
+        }, 2000);
+      });
+    }
+  
+    static openTreasureBox() {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve("恭喜!你找到了传说中的宝藏!");
+        }, 1000);
+      });
+    }
+    
+    static getMapFragment() {
+      return new Promise((resolve) => {
+          setTimeout(() => {
+              resolve("在市场的小摊上找到了地图的一角...");
+          }, 1000);
+      });
+  }
+
+  static assembleMap(fragment) {
+      return new Promise((resolve, reject) => {
+          setTimeout(() => {
+              if (!fragment) {
+                  reject("没有地图碎片可以组装!");
+              }
+              resolve("地图组装成功!指向了神庙的位置...");
+          }, 1500);
+      });
+  }
+
+  static navigateToTemple() {
+      return new Promise((resolve, reject) => {
+          setTimeout(() => {
+              const random = Math.random();
+              if (random < 0.5) {
+                  reject("糟糕!迷失了方向!");
+              }
+              resolve("成功导航至神庙...");
+          }, 2000);
+      });
+  }
+  }
+  async function findTreasureWithAsyncAwait() {
+    try {
+        const clue = await TreasureMap.getInitialClue();
+        document.getElementById('clue').textContent = clue;
+        const fragment = await TreasureMap.getMapFragment();
+        document.getElementById('fragment').textContent = fragment;
+        const assembledMap = await TreasureMap.assembleMap(fragment);
+        document.getElementById('assembledMap').textContent = assembledMap;
+        const location = await TreasureMap.navigateToTemple();
+        document.getElementById('location').textContent = location;
+        const decodedClue = await TreasureMap.decodeAncientScript(clue);
+        document.getElementById('location').textContent = decodedClue; // Update location with decoded clue
+        const box = await TreasureMap.searchTemple(location);
+        document.getElementById('box').textContent = box;
+        const treasure = await TreasureMap.openTreasureBox();
+        document.getElementById('treasure').textContent = treasure;
+    } catch (error) {
+        console.error("任务失败:", error);
+        document.querySelector('.container').innerHTML = `<h1>寻宝失败:</h1><p>${error}</p>`;
+    }
+}
+
+fetch('data.txt')
+     .then(response => response.text())
+     .then(data => {
+        const lines = data.split('\n');
+        lines.forEach(line => {
+          const [key, value] = line.split(':');
+          if (key && value) {
+            document.getElementById(key).textContent = value.trim();
+          }
+        });
+      })
+     .catch(error => {
+        console.error('加载数据失败:', error);
+      });
+
+    // 存储玩家信息
+    const player = {
+      id: 'player123',
+      nickname: '寻宝者',
+      gameHistory: []
+    };
+    localStorage.setItem('player', JSON.stringify(player));
+
+    // 恢复游戏历史
+    const storedPlayer = localStorage.getItem('player');
+    if (storedPlayer) {
+      const playerData = JSON.parse(storedPlayer);
+      player.gameHistory = playerData.gameHistory;
+    }
+
+    fetch('data.txt')
+            .then(response => {
+                // 检查响应是否成功
+                if (!response.ok) {
+                    throw new Error('网络错误，无法加载文件');
+                }
+                return response.text();
+            })
+            .then(data => {
+                // 将加载的文本数据按行分割并处理
+                const lines = data.split('\n');
+                const contentDiv = document.getElementById('content');
+
+                lines.forEach(line => {
+                    // 如果有数据行
+                    if (line.trim()) {
+                        const div = document.createElement('div');
+                        div.classList.add('element');
+
+                        const parts = line.split('：');
+                        if (parts.length === 2) {
+                            const title = parts[0].trim();
+                            const description = parts[1].trim();
+
+                            const titleElem = document.createElement('div');
+                            titleElem.classList.add('title');
+                            titleElem.textContent = title;
+
+                            const descriptionElem = document.createElement('div');
+                            descriptionElem.textContent = description;
+
+                            div.appendChild(titleElem);
+                            div.appendChild(descriptionElem);
+                        }
+
+                        contentDiv.appendChild(div);
+                    }
+                });
+            })
+            .catch(error => {
+                console.error('加载数据失败:', error);
+            });
+findTreasureWithAsyncAwait();
+
+// 存储玩家信息
+// 存储玩家信息
+const player1 = {
+      id: 'player123',
+      nickname: '寻宝者',
+      gameHistory: []
+    };
+    localStorage.setItem('player', JSON.stringify(player));
+
+    // 恢复游戏历史
+    const storedPlayer1 = localStorage.getItem('player');
+    if (storedPlayer) {
+      const playerData = JSON.parse(storedPlayer);
+      player.gameHistory = playerData.gameHistory;
+    }
+
+
+
+</script>
+<audio autoplay loop>
+  <source src="background_music.mp3" type="audio/mpeg">
+</body>
+</html>
